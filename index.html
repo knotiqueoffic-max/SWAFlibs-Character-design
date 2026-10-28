@@ -645,10 +645,10 @@
       }
 
       /**
-       * Draws delicate, naturally curved anime-girl eyebrows.
-       * - Features a gentle, elegant arch with the inner end lower and outer portion rising naturally.
-       * - Has a fine, strand-like appearance with subtle central fullness and tapered ends.
-       * - Includes fine strokes following the main contour and soft inner feathering.
+       * Draws a delicate, expressive anime eyebrow using a controlled line-art method.
+       * - One primary graceful Bézier curve with smoothly tapered endpoints.
+       * - A very subtle second stroke reinforcing the central body.
+       * - No closed outline, no filled polygon, no ribbon effect, and no decorative inner wisps.
        */
       function drawEyebrow(ctx, eyebrow) {
         ctx.save();
@@ -656,73 +656,47 @@
         ctx.lineJoin = 'round';
 
         const {
-          headX, headY,
-          cp1X, cp1Y,
-          cp2X, cp2Y,
-          peakX, peakY,
-          cp3X, cp3Y,
-          cp4X, cp4Y,
-          tailX, tailY,
-          thickness = 2.2,
-          strokeDark = '#242428',
-          strokeSoft = '#42424a',
-          strokeFaint = '#6c6c76',
-          isLeft = false
+          p0x, p0y,
+          p1x, p1y,
+          p2x, p2y,
+          p3x, p3y,
+          strokeDark = '#2c2c32',
+          strokeSoft = '#4a4a52'
         } = eyebrow;
 
-        // 1. Primary upper contour curve (inner head -> arch peak -> tapered tail)
+        // 1. Primary graceful Bézier curve (clean, thin, continuous hair stroke)
         ctx.strokeStyle = strokeDark;
-        ctx.lineWidth = 1.2;
+        ctx.lineWidth = 1.05;
         ctx.beginPath();
-        ctx.moveTo(headX, headY);
-        ctx.bezierCurveTo(cp1X, cp1Y, cp2X, cp2Y, peakX, peakY);
-        ctx.bezierCurveTo(cp3X, cp3Y, cp4X, cp4Y, tailX, tailY);
+        ctx.moveTo(p0x, p0y);
+        ctx.bezierCurveTo(p1x, p1y, p2x, p2y, p3x, p3y);
         ctx.stroke();
 
-        // 2. Lower strand contour curve (creates subtle fullness in the central body, tapering at both ends)
+        // 2. Subtle central reinforcement stroke (softly enhances central hair density without an outline)
+        function lerp(ax, ay, bx, by, t) {
+          return { x: ax + (bx - ax) * t, y: ay + (by - ay) * t };
+        }
+        function split(q0, q1, q2, q3, t) {
+          const q01 = lerp(q0.x, q0.y, q1.x, q1.y, t);
+          const q12 = lerp(q1.x, q1.y, q2.x, q2.y, t);
+          const q23 = lerp(q2.x, q2.y, q3.x, q3.y, t);
+          const q012 = lerp(q01.x, q01.y, q12.x, q12.y, t);
+          const q123 = lerp(q12.x, q12.y, q23.x, q23.y, t);
+          const q0123 = lerp(q012.x, q012.y, q123.x, q123.y, t);
+          return { left: [q0, q01, q012, q0123], right: [q0123, q123, q23, q3] };
+        }
+
+        const pts = [{ x: p0x, y: p0y }, { x: p1x, y: p1y }, { x: p2x, y: p2y }, { x: p3x, y: p3y }];
+        const cut1 = split(pts[0], pts[1], pts[2], pts[3], 0.22);
+        const u1 = (0.74 - 0.22) / (1 - 0.22);
+        const cut2 = split(cut1.right[0], cut1.right[1], cut1.right[2], cut1.right[3], u1);
+        const seg = cut2.left;
+
         ctx.strokeStyle = strokeSoft;
-        ctx.lineWidth = 0.95;
+        ctx.lineWidth = 0.65;
         ctx.beginPath();
-        ctx.moveTo(tailX, tailY);
-        // Return curve from tail to fuller central body
-        const bcp3X = peakX + (tailX - peakX) * 0.45;
-        const bcp3Y = tailY - 6;
-        const bcp2X = peakX + (tailX - peakX) * 0.15;
-        const bcp2Y = peakY + thickness;
-        ctx.bezierCurveTo(bcp3X, bcp3Y, bcp2X, bcp2Y, peakX, peakY + thickness);
-
-        // Return curve from central body to inner head
-        const bcp1X = headX + (peakX - headX) * 0.55;
-        const bcp1Y = peakY + thickness + 1;
-        const bcp0X = headX + (peakX - headX) * 0.2;
-        const bcp0Y = headY - 4;
-        ctx.bezierCurveTo(bcp1X, bcp1Y, bcp0X, bcp0Y, headX, headY);
-        ctx.stroke();
-
-        // 3. Delicate central hair grain stroke (follows natural strand flow)
-        ctx.strokeStyle = strokeFaint;
-        ctx.lineWidth = 0.7;
-        ctx.beginPath();
-        const gStartX = headX + (peakX - headX) * 0.22;
-        const gStartY = headY - 10;
-        const gMidX = peakX + (tailX - peakX) * 0.1;
-        const gMidY = peakY + thickness * 0.45;
-        const gEndX = peakX + (tailX - peakX) * 0.7;
-        const gEndY = tailY - 4;
-        ctx.moveTo(gStartX, gStartY);
-        ctx.quadraticCurveTo(gMidX, gMidY, gEndX, gEndY);
-        ctx.stroke();
-
-        // 4. Subtle inner head hair feathering wisps (delicate natural anime illustration touch)
-        const dir = isLeft ? 1 : -1;
-        ctx.beginPath();
-        ctx.moveTo(headX, headY);
-        ctx.quadraticCurveTo(headX + 3 * dir, headY - 6, headX + 4.5 * dir, headY - 9);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(headX - 4 * dir, headY - 2);
-        ctx.quadraticCurveTo(headX - 1.5 * dir, headY - 8, headX + 0.5 * dir, headY - 11);
+        ctx.moveTo(seg[0].x, seg[0].y - 0.25);
+        ctx.bezierCurveTo(seg[1].x, seg[1].y - 0.35, seg[2].x, seg[2].y - 0.35, seg[3].x, seg[3].y - 0.25);
         ctx.stroke();
 
         ctx.restore();
@@ -767,51 +741,33 @@
           strokeFaint: '#7e7e8a'
         };
 
-        // Complete character configuration with expressive, arched anime-girl eyebrows
+        // Complete character configuration with delicate, shallow, expressive anime eyebrows
         const character = {
           midX: 400,
           rightEye: rightEye,
           rightEyebrow: {
-            isLeft: false,
-            headX: 466,
-            headY: 356,
-            cp1X: 466 + 102 * 0.45,
-            cp1Y: 356 - 18,
-            cp2X: 466 + 102 * 0.85,
-            cp2Y: 326,
-            peakX: 568,
-            peakY: 326,
-            cp3X: 568 + 100 * 0.4,
-            cp3Y: 326 + 1,
-            cp4X: 568 + 100 * 0.8,
-            cp4Y: 338 - 8,
-            tailX: 668,
-            tailY: 338,
-            thickness: 2.2,
-            strokeDark: '#222226',
-            strokeSoft: '#42424a',
-            strokeFaint: '#6c6c76'
+            p0x: 476,
+            p0y: 346.5,
+            p1x: 520,
+            p1y: 340.5,
+            p2x: 585,
+            p2y: 338.0,
+            p3x: 662,
+            p3y: 343.5,
+            strokeDark: '#2c2c32',
+            strokeSoft: '#4a4a52'
           },
           leftEyebrow: {
-            isLeft: true,
-            headX: 334,
-            headY: 356.8,
-            cp1X: 334 - 102 * 0.45,
-            cp1Y: 356.8 - 18.5,
-            cp2X: 334 - 102 * 0.85,
-            cp2Y: 324.5,
-            peakX: 232,
-            peakY: 324.5, // subtle natural asymmetry (1.5px higher lift)
-            cp3X: 232 - 100 * 0.4,
-            cp3Y: 324.5 + 1.2,
-            cp4X: 232 - 100 * 0.8,
-            cp4Y: 338.5 - 7.5,
-            tailX: 132,
-            tailY: 338.5,
-            thickness: 2.2,
-            strokeDark: '#222226',
-            strokeSoft: '#42424a',
-            strokeFaint: '#6c6c76'
+            p0x: 325,
+            p0y: 347.5,
+            p1x: 278,
+            p1y: 340.0,
+            p2x: 212,
+            p2y: 337.5,
+            p3x: 138,
+            p3y: 342.5,
+            strokeDark: '#2c2c32',
+            strokeSoft: '#4a4a52'
           }
         };
 

@@ -645,10 +645,13 @@
       }
 
       /**
-       * Draws a delicate, expressive anime eyebrow using a controlled line-art method.
-       * - One primary graceful Bézier curve with smoothly tapered endpoints.
-       * - A very subtle second stroke reinforcing the central body.
-       * - No closed outline, no filled polygon, no ribbon effect, and no decorative inner wisps.
+       * Draws a delicate, elongated anime eyebrow with a clearly defined tapered shape:
+       * - Fine, pointed inner end.
+       * - Smoothly rising upper contour.
+       * - Subtly fuller central section (open-looking, modest ~1.8px thickness).
+       * - Graceful, slightly descending outer contour.
+       * - Thin lower contour tapering back to the endpoints.
+       * - One subtle interior hair stroke following the main shape.
        */
       function drawEyebrow(ctx, eyebrow) {
         ctx.save();
@@ -656,15 +659,26 @@
         ctx.lineJoin = 'round';
 
         const {
+          // Upper contour Bézier control points
           p0x, p0y,
           p1x, p1y,
           p2x, p2y,
           p3x, p3y,
-          strokeDark = '#2c2c32',
-          strokeSoft = '#4a4a52'
+          // Lower contour Bézier control points (from inner end to outer end)
+          q0x, q0y,
+          q1x, q1y,
+          q2x, q2y,
+          q3x, q3y,
+          // Interior subtle hair stroke
+          ix0, iy0,
+          ix1, iy1,
+          ix2, iy2,
+          strokeDark = '#2a2a30',
+          strokeMedium = '#3c3c44',
+          strokeSoft = '#585862'
         } = eyebrow;
 
-        // 1. Primary graceful Bézier curve (clean, thin, continuous hair stroke)
+        // 1. Upper contour curve (delicate dark-gray pencil line)
         ctx.strokeStyle = strokeDark;
         ctx.lineWidth = 1.05;
         ctx.beginPath();
@@ -672,32 +686,23 @@
         ctx.bezierCurveTo(p1x, p1y, p2x, p2y, p3x, p3y);
         ctx.stroke();
 
-        // 2. Subtle central reinforcement stroke (softly enhances central hair density without an outline)
-        function lerp(ax, ay, bx, by, t) {
-          return { x: ax + (bx - ax) * t, y: ay + (by - ay) * t };
-        }
-        function split(q0, q1, q2, q3, t) {
-          const q01 = lerp(q0.x, q0.y, q1.x, q1.y, t);
-          const q12 = lerp(q1.x, q1.y, q2.x, q2.y, t);
-          const q23 = lerp(q2.x, q2.y, q3.x, q3.y, t);
-          const q012 = lerp(q01.x, q01.y, q12.x, q12.y, t);
-          const q123 = lerp(q12.x, q12.y, q23.x, q23.y, t);
-          const q0123 = lerp(q012.x, q012.y, q123.x, q123.y, t);
-          return { left: [q0, q01, q012, q0123], right: [q0123, q123, q23, q3] };
-        }
-
-        const pts = [{ x: p0x, y: p0y }, { x: p1x, y: p1y }, { x: p2x, y: p2y }, { x: p3x, y: p3y }];
-        const cut1 = split(pts[0], pts[1], pts[2], pts[3], 0.22);
-        const u1 = (0.74 - 0.22) / (1 - 0.22);
-        const cut2 = split(cut1.right[0], cut1.right[1], cut1.right[2], cut1.right[3], u1);
-        const seg = cut2.left;
-
-        ctx.strokeStyle = strokeSoft;
-        ctx.lineWidth = 0.65;
+        // 2. Lower contour curve (tapering naturally back toward the inner end)
+        ctx.strokeStyle = strokeMedium;
+        ctx.lineWidth = 0.90;
         ctx.beginPath();
-        ctx.moveTo(seg[0].x, seg[0].y - 0.25);
-        ctx.bezierCurveTo(seg[1].x, seg[1].y - 0.35, seg[2].x, seg[2].y - 0.35, seg[3].x, seg[3].y - 0.25);
+        ctx.moveTo(q0x, q0y);
+        ctx.bezierCurveTo(q1x, q1y, q2x, q2y, q3x, q3y);
         ctx.stroke();
+
+        // 3. One subtle interior hair stroke following the central contour
+        if (ix0 !== undefined) {
+          ctx.strokeStyle = strokeSoft;
+          ctx.lineWidth = 0.65;
+          ctx.beginPath();
+          ctx.moveTo(ix0, iy0);
+          ctx.quadraticCurveTo(ix1, iy1, ix2, iy2);
+          ctx.stroke();
+        }
 
         ctx.restore();
       }
@@ -741,33 +746,47 @@
           strokeFaint: '#7e7e8a'
         };
 
-        // Complete character configuration with delicate, shallow, expressive anime eyebrows
+        // Complete character configuration with elongated tapered anime eyebrows
         const character = {
           midX: 400,
           rightEye: rightEye,
           rightEyebrow: {
-            p0x: 476,
-            p0y: 346.5,
-            p1x: 520,
-            p1y: 340.5,
-            p2x: 585,
-            p2y: 338.0,
-            p3x: 662,
-            p3y: 343.5,
-            strokeDark: '#2c2c32',
-            strokeSoft: '#4a4a52'
+            // Upper contour
+            p0x: 472, p0y: 345.5,
+            p1x: 518, p1y: 338.5,
+            p2x: 572, p2y: 336.0,
+            p3x: 652, p3y: 342.0,
+            // Lower contour
+            q0x: 472, q0y: 345.5,
+            q1x: 520, q1y: 340.8,
+            q2x: 572, q2y: 338.3,
+            q3x: 652, q3y: 342.0,
+            // Interior subtle hair stroke
+            ix0: 512, iy0: 340.0,
+            ix1: 566, iy1: 337.2,
+            ix2: 618, iy2: 339.2,
+            strokeDark: '#28282e',
+            strokeMedium: '#3a3a42',
+            strokeSoft: '#5a5a64'
           },
           leftEyebrow: {
-            p0x: 325,
-            p0y: 347.5,
-            p1x: 278,
-            p1y: 340.0,
-            p2x: 212,
-            p2y: 337.5,
-            p3x: 138,
-            p3y: 342.5,
-            strokeDark: '#2c2c32',
-            strokeSoft: '#4a4a52'
+            // Upper contour
+            p0x: 328, p0y: 346.0,
+            p1x: 282, p1y: 338.2,
+            p2x: 226, p2y: 335.6,
+            p3x: 148, p3y: 341.6,
+            // Lower contour
+            q0x: 328, q0y: 346.0,
+            q1x: 280, q1y: 340.5,
+            q2x: 226, q2y: 337.8,
+            q3x: 148, q3y: 341.6,
+            // Interior subtle hair stroke
+            ix0: 288, iy0: 339.6,
+            ix1: 232, iy1: 336.8,
+            ix2: 182, iy2: 338.8,
+            strokeDark: '#28282e',
+            strokeMedium: '#3a3a42',
+            strokeSoft: '#5a5a64'
           }
         };
 

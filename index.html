@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anime Eye Canvas Sketch</title>
+    <meta name="description" content="A delicate, procedural anime-style eyes and eyebrows sketch drawn using HTML5 Canvas 2D API." />
+    <meta property="og:title" content="Anime Eye Canvas Sketch" />
+    <meta property="og:description" content="A delicate, procedural anime-style eyes and eyebrows sketch drawn using HTML5 Canvas 2D API." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+      #canvas {
+        display: block;
+        width: 800px;
+        height: 800px;
+        background-color: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas" width="800" height="800"></canvas>
+
+    <script>
+      /**
+       * Anime Eyes and Eyebrows Procedural Canvas Sketch
+       * Technology: HTML5 Canvas 2D API, Vanilla JavaScript, CSS3
+       * Line Art Style: Delicate pencil construction sketch, uncolored, pure line contours.
+       */
+
+      /**
+       * Clips the drawing region to the area beneath the upper eyelid curve.
+       * This ensures the upper portion of the iris, pupil, highlights, and internal
+       * iris structures are organically concealed by the upper eyelid.
+       */
+      function applyUnderUpperLidClip(ctx, eye) {
+        const s = eye.scale;
+        ctx.beginPath();
+        // Trace the exact sweeping contour of the upper eyelid
+        ctx.moveTo(eye.cx - 220 * s, eye.cy + 22 * s);
+        ctx.bezierCurveTo(
+          eye.cx - 130 * s, eye.cy - 48 * s,
+          eye.cx - 35 * s,  eye.cy - 108 * s,
+          eye.cx + 30 * s,  eye.cy - 104 * s
+        );
+        ctx.bezierCurveTo(
+          eye.cx + 115 * s, eye.cy - 95 * s,
+          eye.cx + 190 * s, eye.cy - 52 * s,
+          eye.cx + 245 * s, eye.cy - 16 * s
+        );
+        // Box out the lower hemisphere
+        ctx.lineTo(eye.cx + 380 * s, eye.cy + 380 * s);
+        ctx.lineTo(eye.cx - 380 * s, eye.cy + 380 * s);
+        ctx.closePath();
+        ctx.clip();
+      }
+
+      /**
+       * Draws the upper eyelid with delicate curves, double contour, and supratarsal fold.
+       */
+      function drawUpperEyelid(ctx, eye) {
+        ctx.save();
+        const s = eye.scale;
+
+        // 1. Primary upper lash line contour (expressive, graceful arch)
+        ctx.strokeStyle = eye.strokeDark;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        // Inner canthus
+        ctx.moveTo(eye.cx - 188 * s, eye.cy + 22 * s);
+        // Ascending curve to apex
+        ctx.bezierCurveTo(
+          eye.cx - 125 * s, eye.cy - 48 * s,
+          eye.cx - 35 * s,  eye.cy - 108 * s,
+          eye.cx + 30 * s,  eye.cy - 104 * s
+        );
+        // Descending curve sweeping to outer corner
+        ctx.bezierCurveTo(
+          eye.cx + 115 * s, eye.cy - 95 * s,
+          eye.cx + 190 * s, eye.cy - 52 * s,
+          eye.cx + 228 * s, eye.cy - 18 * s
+        );
+        ctx.stroke();
+
+        // 2. Secondary upper lid rim contour (pencil sketch thickness guide)
+        ctx.strokeStyle = eye.strokeMedium;
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(eye.cx - 125 * s, eye.cy - 44 * s);
+        ctx.bezierCurveTo(
+          eye.cx - 30 * s,  eye.cy - 114 * s,
+          eye.cx + 70 * s,  eye.cy - 108 * s,
+          eye.cx + 218 * s, eye.cy - 24 * s
+        );
+        ctx.stroke();
+
+        // 3. Supratarsal crease (the elegant double eyelid "futae" fold)
+        ctx.strokeStyle = eye.strokeSoft;
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(eye.cx - 140 * s, eye.cy - 68 * s);
+        ctx.bezierCurveTo(
+          eye.cx - 35 * s,  eye.cy - 136 * s,
+          eye.cx + 55 * s,  eye.cy - 130 * s,
+          eye.cx + 160 * s, eye.cy - 72 * s
+        );
+        ctx.stroke();
+
+        // 4. Subtle inner corner fold & tear duct notch
+        ctx.strokeStyle = eye.strokeMedium;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(eye.cx - 188 * s, eye.cy + 22 * s);
+        ctx.quadraticCurveTo(eye.cx - 198 * s, eye.cy + 26 * s, eye.cx - 184 * s, eye.cy + 34 * s);
+        ctx.stroke();
+
+        // Delicate caruncle inner curve
+        ctx.strokeStyle = eye.strokeFaint;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(eye.cx - 194 * s, eye.cy + 24 * s);
+        ctx.quadraticCurveTo(eye.cx - 186 * s, eye.cy + 20 * s, eye.cx - 176 * s, eye.cy + 24 * s);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      /**
+       * Draws the softer, thinner lower eyelid with subtle tear margin contours.
+       */
+      function drawLowerEyelid(ctx, eye) {
+        ctx.save();
+        const s = eye.scale;
+
+        // 1. Primary lower eyelid curve (delicate, detached slightly from inner corner)
+        ctx.strokeStyle = eye.strokeMedium;
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(eye.cx - 138 * s, eye.cy + 42 * s);
+        ctx.bezierCurveTo(
+          eye.cx - 52 * s,  eye.cy + 86 * s,
+          eye.cx + 42 * s,  eye.cy + 88 * s,
+          eye.cx + 154 * s, eye.cy + 48 * s
+        );
+        ctx.stroke();
+
+        // 2. Outer lower corner accent curve (subtle upward flick with slight opening)
+        ctx.strokeStyle = eye.strokeMedium;
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(eye.cx + 170 * s, eye.cy + 36 * s);
+        ctx.quadraticCurveTo(eye.cx + 196 * s, eye.cy + 22 * s, eye.cx + 214 * s, eye.cy - 2 * s);
+        ctx.stroke();
+
+        // 3. Faint lower water line / lash bed contour
+        ctx.strokeStyle = eye.strokeFaint;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(eye.cx - 110 * s, eye.cy + 48 * s);
+        ctx.bezierCurveTo(
+          eye.cx - 40 * s,  eye.cy + 80 * s,
+          eye.cx + 45 * s,  eye.cy + 82 * s,
+          eye.cx + 135 * s, eye.cy + 52 * s
+        );
+        ctx.stroke();
+
+        // 4. Subtle lower orbital eyelid crease
+        ctx.strokeStyle = eye.strokeFaint;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(eye.cx - 42 * s, eye.cy + 112 * s);
+        ctx.quadraticCurveTo(eye.cx + 18 * s, eye.cy + 118 * s, eye.cx + 78 * s, eye.cy + 110 * s);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      /**
+       * Draws the large, rounded iris outline and limbal ring contour.
+       * Upper portion is partially concealed by the upper eyelid.
+       */
+      function drawIrisOutline(ctx, eye) {
+        ctx.save();
+        applyUnderUpperLidClip(ctx, eye);
+        const s = eye.scale;
+
+        // 1. Primary outer iris contour
+        ctx.strokeStyle = eye.strokeDark;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.ellipse(eye.irisX, eye.irisY, eye.irisRx, eye.irisRy, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 2. Secondary inner limbal ring contour (fine pencil sketch line)
+        ctx.strokeStyle = eye.strokeSoft;
+        ctx.lineWidth = 0.85;
+        ctx.beginPath();
+        ctx.ellipse(eye.irisX, eye.irisY, eye.irisRx - 5 * s, eye.irisRy - 5 * s, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      /**
+       * Draws the circular pupil sitting naturally inside the iris.
+       */
+      function drawPupilOutline(ctx, eye) {
+        ctx.save();
+        applyUnderUpperLidClip(ctx, eye);
+        const s = eye.scale;
+
+        // 1. Primary pupil contour
+        ctx.strokeStyle = eye.strokeDark;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.ellipse(eye.pupilX, eye.pupilY, eye.pupilRx, eye.pupilRy, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 2. Concentric inner aperture guide ring
+        ctx.strokeStyle = eye.strokeSoft;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.ellipse(eye.pupilX, eye.pupilY, eye.pupilRx - 6 * s, eye.pupilRy - 7 * s, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      /**
+       * Draws delicate curved lines arranged around the pupil representing iris structures.
+       */
+      function drawIrisDetails(ctx, eye) {
+        ctx.save();
+        applyUnderUpperLidClip(ctx, eye);
+        const s = eye.scale;
+
+        // 1. Eyelid cast shadow registration curve across upper iris
+        ctx.strokeStyle = eye.strokeSoft;
+        ctx.lineWidth = 0.85;
+        ctx.beginPath();
+        ctx.moveTo(eye.irisX - 74 * s, eye.irisY - 22 * s);
+        ctx.bezierCurveTo(
+          eye.irisX - 25 * s, eye.irisY - 12 * s,
+          eye.irisX + 25 * s, eye.irisY - 10 * s,
+          eye.irisX + 76 * s, eye.irisY - 18 * s
+        );
+        ctx.stroke();
+
+        // Secondary subtle shadow crease line
+        ctx.strokeStyle = eye.strokeFaint;
+        ctx.lineWidth = 0.75;
+        ctx.beginPath();
+        ctx.moveTo(eye.irisX - 68 * s, eye.irisY - 32 * s);
+        ctx.bezierCurveTo(
+          eye.irisX - 20 * s, eye.irisY - 22 * s,
+          eye.irisX + 20 * s, eye.irisY - 20 * s,
+          eye.irisX + 70 * s, eye.irisY - 26 * s
+        );
+        ctx.stroke();
+
+        // 2. Collarette ring - fine scalloped contour segments circling the pupil
+        ctx.strokeStyle = eye.strokeSoft;
+        ctx.lineWidth = 0.85;
+        const numCollarettePoints = 8;
+        const collaretteRadius = 46 * s;
+        ctx.beginPath();
+        for (let i = 0; i <= numCollarettePoints; i++) {
+          const angle = (i / numCollarettePoints) * Math.PI * 2;
+          const nextAngle = ((i + 1) / numCollarettePoints) * Math.PI * 2;
+          const midAngle = (angle + nextAngle) / 2;
+
+          const x1 = eye.pupilX + Math.cos(angle) * (collaretteRadius * 0.94);
+          const y1 = eye.pupilY + Math.sin(angle) * (collaretteRadius * 1.04);
+          const cpx = eye.pupilX + Math.cos(midAngle) * (collaretteRadius * 1.08);
+          const cpy = eye.pupilY + Math.sin(midAngle) * (collaretteRadius * 1.18);
+          const x2 = eye.pupilX + Math.cos(nextAngle) * (collaretteRadius * 0.94);
+          const y2 = eye.pupilY + Math.sin(nextAngle) * (collaretteRadius * 1.04);
+
+          if (i === 0) ctx.moveTo(x1, y1);
+          ctx.quadraticCurveTo(cpx, cpy, x2, y2);
+        }
+        ctx.stroke();
+
+        // 3. Delicate radial crypt striations curving outward from collarette
+        ctx.strokeStyle = eye.strokeFaint;
+        ctx.lineWidth = 0.75;
+        const radialAngles = [
+          0.32, 0.58, 0.84, 1.12, 1.40, 1.68, 1.96, 2.24, 2.50, 2.78, 3.06
+        ]; // Concentrated in lower and mid regions
+        radialAngles.forEach((radAngle) => {
+          const startR = 48 * s;
+          const endR = 74 * s;
+          const xStart = eye.pupilX + Math.cos(radAngle) * (startR * 0.95);
+          const yStart = eye.pupilY + Math.sin(radAngle) * (startR * 1.06);
+
+          const midR = (startR + endR) * 0.5;
+          const midCurveAngle = radAngle + 0.08;
+          const xMid = eye.pupilX + Math.cos(midCurveAngle) * (midR * 0.95);
+          const yMid = eye.pupilY + Math.sin(midCurveAngle) * (midR * 1.06);
+
+          const xEnd = eye.pupilX + Math.cos(radAngle + 0.04) * (endR * 0.95);
+          const yEnd = eye.pupilY + Math.sin(radAngle + 0.04) * (endR * 1.06);
+
+          ctx.beginPath();
+          ctx.moveTo(xStart, yStart);
+          ctx.quadraticCurveTo(xMid, yMid, xEnd, yEnd);
+          ctx.stroke();
+        });
+
+        // 4. Lower reflective boundary crescent (classic anime light bounce construction)
+        ctx.strokeStyle = eye.strokeSoft;
+        ctx.lineWidth = 0.9;
+        ctx.beginPath();
+        // Inner arc of crescent
+        ctx.arc(eye.irisX, eye.irisY - 6 * s, 72 * s, 0.22 * Math.PI, 0.82 * Math.PI);
+        ctx.stroke();
+
+        ctx.strokeStyle = eye.strokeFaint;
+        ctx.lineWidth = 0.75;
+        ctx.beginPath();
+        // Outer accent of crescent
+        ctx.arc(eye.irisX, eye.irisY - 12 * s, 80 * s, 0.26 * Math.PI, 0.78 * Math.PI);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      /**
+       * Draws delicate highlight contours. Unfilled pencil outlines only.
+       */
+      function drawEyeHighlights(ctx, eye) {
+        ctx.save();
+        applyUnderUpperLidClip(ctx, eye);
+        const s = eye.scale;
+
+        // 1. Primary upper-left highlight outline (large, expressive anime gleam)
+        ctx.strokeStyle = eye.strokeDark;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.ellipse(
+          eye.cx - 20 * s,
+          eye.cy - 30 * s,
+          18 * s,
+          23 * s,
+          -26 * (Math.PI / 180),
+          0,
+          Math.PI * 2
+        );
+        ctx.stroke();
+
+        // Inner contour of primary highlight
+        ctx.strokeStyle = eye.strokeFaint;
+        ctx.lineWidth = 0.75;
+        ctx.beginPath();
+        ctx.ellipse(
+          eye.cx - 20 * s,
+          eye.cy - 30 * s,
+          12 * s,
+          16 * s,
+          -26 * (Math.PI / 180),
+          0,
+          Math.PI * 2
+        );
+        ctx.stroke();
+
+        // 2. Secondary lower-right bounce highlight outline
+        ctx.strokeStyle = eye.strokeMedium;
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.ellipse(
+          eye.cx + 45 * s,
+          eye.cy + 36 * s,
+          10 * s,
+          13 * s,
+          18 * (Math.PI / 180),
+          0,
+          Math.PI * 2
+        );
+        ctx.stroke();
+
+        // 3. Small tertiary upper glint
+        ctx.strokeStyle = eye.strokeSoft;
+        ctx.lineWidth = 0.9;
+        ctx.beginPath();
+        ctx.ellipse(
+          eye.cx + 24 * s,
+          eye.cy - 44 * s,
+          5.0 * s,
+          6.0 * s,
+          0,
+          0,
+          Math.PI * 2
+        );
+        ctx.stroke();
+
+        // 4. Tiny micro pinpoint accent
+        ctx.strokeStyle = eye.strokeFaint;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.ellipse(
+          eye.cx - 40 * s,
+          eye.cy + 10 * s,
+          3.2 * s,
+          4.0 * s,
+          -15 * (Math.PI / 180),
+          0,
+          Math.PI * 2
+        );
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      /**
+       * Helper to evaluate a point, tangent, and normal on the upper eyelid curve.
+       * Parameter u spans from 0.0 (inner canthus) to 1.0 (outer corner).
+       */
+      function getUpperEyelidPointAndTangent(eye, u) {
+        const s = eye.scale;
+        let p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y, t;
+
+        if (u <= 0.5) {
+          t = u / 0.5;
+          p0x = eye.cx - 188 * s; p0y = eye.cy + 22 * s;
+          p1x = eye.cx - 125 * s; p1y = eye.cy - 48 * s;
+          p2x = eye.cx - 35 * s;  p2y = eye.cy - 108 * s;
+          p3x = eye.cx + 30 * s;  p3y = eye.cy - 104 * s;
+        } else {
+          t = (u - 0.5) / 0.5;
+          p0x = eye.cx + 30 * s;  p0y = eye.cy - 104 * s;
+          p1x = eye.cx + 115 * s; p1y = eye.cy - 95 * s;
+          p2x = eye.cx + 190 * s; p2y = eye.cy - 52 * s;
+          p3x = eye.cx + 228 * s; p3y = eye.cy - 18 * s;
+        }
+
+        const it = 1 - t;
+        const x = it * it * it * p0x + 3 * it * it * t * p1x + 3 * it * t * t * p2x + t * t * t * p3x;
+        const y = it * it * it * p0y + 3 * it * it * t * p1y + 3 * it * t * t * p2y + t * t * t * p3y;
+
+        const dx = 3 * it * it * (p1x - p0x) + 6 * it * t * (p2x - p1x) + 3 * t * t * (p3x - p2x);
+        const dy = 3 * it * it * (p1y - p0y) + 6 * it * t * (p2y - p1y) + 3 * t * t * (p3y - p2y);
+        const len = Math.hypot(dx, dy) || 1;
+
+        const tx = dx / len;
+        const ty = dy / len;
+        // Upward/outward normal pointing away from eyeball
+        const nx = ty;
+        const ny = -tx;
+
+        return { x, y, tx, ty, nx, ny };
+      }
+
+      /**
+       * Draws delicate Japanese anime-style eyelashes.
+       * - Graceful upper lash line integrated with the existing eyelid contour.
+       * - Individually distinguishable fine lashes fanning outward toward the outer corner.
+       * - Outermost upper lashes slightly longer and more pronounced with curved tapered tips.
+       * - A few extremely subtle lower eyelashes beneath the outer portions of the eyes.
+       */
+      function drawEyelashes(ctx, eye) {
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        const s = eye.scale;
+
+        /**
+         * Draws a single curved, delicately tapered eyelash starting right on the upper eyelid contour.
+         */
+        function drawIntegratedLash(u, lenScale, strokeWidth, strokeStyle, curlFactor = 0.5, flareOutward = 0.0) {
+          const pt = getUpperEyelidPointAndTangent(eye, u);
+          const lashLen = lenScale * s;
+
+          // Root direction: blends eyelid tangent with upward lift so lash grows from lid
+          const rootDirX = pt.tx * (1 - curlFactor) + pt.nx * curlFactor;
+          const rootDirY = pt.ty * (1 - curlFactor) + pt.ny * curlFactor;
+          const rootLen = Math.hypot(rootDirX, rootDirY) || 1;
+          const rnx = rootDirX / rootLen;
+          const rny = rootDirY / rootLen;
+
+          // Tip direction: sweeps outward and upward along natural curl
+          const tipDirX = pt.tx * flareOutward + pt.nx * (1 - Math.abs(flareOutward) * 0.4);
+          const tipDirY = pt.ty * flareOutward + pt.ny * (1 - Math.abs(flareOutward) * 0.4);
+          const tipLen = Math.hypot(tipDirX, tipDirY) || 1;
+          const tnx = tipDirX / tipLen;
+          const tny = tipDirY / tipLen;
+
+          const cp1x = pt.x + rnx * (lashLen * 0.38);
+          const cp1y = pt.y + rny * (lashLen * 0.38);
+          const cp2x = pt.x + (rnx * 0.35 + tnx * 0.65) * (lashLen * 0.72);
+          const cp2y = pt.y + (rny * 0.35 + tny * 0.65) * (lashLen * 0.72);
+          const tipX = pt.x + tnx * lashLen;
+          const tipY = pt.y + tny * lashLen;
+
+          // 1. Full tapered lash stroke (fine line to tip with rounded cap)
+          ctx.strokeStyle = strokeStyle;
+          ctx.lineWidth = strokeWidth;
+          ctx.beginPath();
+          ctx.moveTo(pt.x, pt.y);
+          ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, tipX, tipY);
+          ctx.stroke();
+
+          // 2. Subtle root weld into the eyelid thickness (ensures seamless zero-gap attachment)
+          const midT = 0.35;
+          const it = 1 - midT;
+          const rootMidX = it * it * it * pt.x + 3 * it * it * midT * cp1x + 3 * it * midT * midT * cp2x + midT * midT * midT * tipX;
+          const rootMidY = it * it * it * pt.y + 3 * it * it * midT * cp1y + 3 * it * midT * midT * cp2y + midT * midT * midT * tipY;
+
+          ctx.lineWidth = strokeWidth * 1.35;
+          ctx.beginPath();
+          ctx.moveTo(pt.x, pt.y);
+          ctx.quadraticCurveTo(cp1x, cp1y, rootMidX, rootMidY);
+          ctx.stroke();
+        }
+
+        // --- UPPER LASH LINE INTEGRATION ---
+        // A graceful lash line contour that accentuates the eyelid shelf
+        ctx.strokeStyle = eye.strokeDark;
+        ctx.lineWidth = 1.35;
+        ctx.beginPath();
+        const pShelfStart = getUpperEyelidPointAndTangent(eye, 0.22);
+        const pShelfMid1 = getUpperEyelidPointAndTangent(eye, 0.52);
+        const pShelfMid2 = getUpperEyelidPointAndTangent(eye, 0.80);
+        const pShelfEnd = getUpperEyelidPointAndTangent(eye, 0.985);
+        ctx.moveTo(pShelfStart.x, pShelfStart.y);
+        ctx.bezierCurveTo(pShelfMid1.x, pShelfMid1.y - 0.8, pShelfMid2.x, pShelfMid2.y - 0.8, pShelfEnd.x, pShelfEnd.y);
+        ctx.stroke();
+
+        // --- UPPER EYELASHES (Individually distinguishable, fanning outward toward outer corner) ---
+        // Inner lashes (2-3 fine, short wisps)
+        drawIntegratedLash(0.18, 9.0,  0.75, eye.strokeFaint, 0.65, 0.15);
+        drawIntegratedLash(0.26, 12.0, 0.80, eye.strokeSoft,  0.60, 0.20);
+        drawIntegratedLash(0.35, 15.0, 0.85, eye.strokeSoft,  0.55, 0.25);
+
+        // Central upper eyelid lashes (delicate, closely following arch)
+        drawIntegratedLash(0.44, 18.5, 0.95, eye.strokeMedium, 0.50, 0.30);
+        drawIntegratedLash(0.53, 22.5, 1.00, eye.strokeDark,   0.45, 0.36);
+        drawIntegratedLash(0.62, 26.5, 1.05, eye.strokeDark,   0.40, 0.42);
+        drawIntegratedLash(0.71, 31.0, 1.10, eye.strokeDark,   0.36, 0.46);
+
+        // Outermost upper lashes (longer, more pronounced, fanning outward with tapered tips)
+        drawIntegratedLash(0.79, 37.0, 1.15, eye.strokeDark,   0.32, 0.52);
+        drawIntegratedLash(0.84, 29.0, 0.90, eye.strokeSoft,   0.38, 0.48); // shorter layered companion lash
+        drawIntegratedLash(0.89, 44.0, 1.25, eye.strokeDark,   0.28, 0.56);
+        drawIntegratedLash(0.94, 52.0, 1.35, eye.strokeDark,   0.22, 0.62); // primary elegant outer flick
+        drawIntegratedLash(0.985, 36.0, 1.10, eye.strokeMedium, 0.30, 0.54); // outer corner accent lash
+
+        // --- LOWER EYELASHES ---
+        // Extremely subtle lower eyelashes beneath the outer portions of the eyes
+        ctx.strokeStyle = eye.strokeSoft;
+        ctx.lineWidth = 0.85;
+
+        // Outer lower lash 1
+        ctx.beginPath();
+        ctx.moveTo(eye.cx + 172 * s, eye.cy + 38 * s);
+        ctx.quadraticCurveTo(eye.cx + 184 * s, eye.cy + 48 * s, eye.cx + 192 * s, eye.cy + 58 * s);
+        ctx.stroke();
+
+        // Outer lower lash 2
+        ctx.beginPath();
+        ctx.moveTo(eye.cx + 150 * s, eye.cy + 50 * s);
+        ctx.quadraticCurveTo(eye.cx + 158 * s, eye.cy + 60 * s, eye.cx + 164 * s, eye.cy + 70 * s);
+        ctx.stroke();
+
+        // Outer lower lash 3 (faintest inner-most)
+        ctx.strokeStyle = eye.strokeFaint;
+        ctx.lineWidth = 0.75;
+        ctx.beginPath();
+        ctx.moveTo(eye.cx + 128 * s, eye.cy + 60 * s);
+        ctx.quadraticCurveTo(eye.cx + 133 * s, eye.cy + 68 * s, eye.cx + 137 * s, eye.cy + 76 * s);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      /**
+       * Master function to draw the complete right anime eye sketch.
+       * Preserves original geometry, stroke styling, and layer order.
+       */
+      function drawAnimeEye(ctx, eye) {
+        ctx.save();
+
+        // 1. Pure white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 800, 800);
+
+        // 2. Line art drawing setup
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // 3. Render eye elements in natural sketch order
+        drawIrisOutline(ctx, eye);
+        drawPupilOutline(ctx, eye);
+        drawIrisDetails(ctx, eye);
+        drawEyeHighlights(ctx, eye);
+        drawUpperEyelid(ctx, eye);
+        drawLowerEyelid(ctx, eye);
+        drawEyelashes(ctx, eye);
+
+        ctx.restore();
+      }
+
+      /**
+       * Draws the matching left eye symmetrically opposite the right eye.
+       * Uses horizontal transformation so that inner corners face inward toward the nose
+       * and outer corners & eyelashes flare outward away from the center of the face.
+       */
+      function drawLeftEye(ctx, character) {
+        ctx.save();
+        const midX = (character && character.midX !== undefined) ? character.midX : 400;
+        const eyeData = (character && character.rightEye) ? character.rightEye : character;
+
+        // Apply horizontal mirror transformation across the facial midline
+        ctx.translate(midX, 0);
+        ctx.scale(-1, 1);
+        ctx.translate(-midX, 0);
+
+        // Line art drawing setup matching existing eye
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // Draw matching left eye using the preserved drawing functions
+        drawIrisOutline(ctx, eyeData);
+        drawPupilOutline(ctx, eyeData);
+        drawIrisDetails(ctx, eyeData);
+        drawEyeHighlights(ctx, eyeData);
+        drawUpperEyelid(ctx, eyeData);
+        drawLowerEyelid(ctx, eyeData);
+        drawEyelashes(ctx, eyeData);
+
+        ctx.restore();
+      }
+
+      /**
+       * Draws delicate, naturally curved anime-girl eyebrows.
+       * - Features a gentle, elegant arch with the inner end lower and outer portion rising naturally.
+       * - Has a fine, strand-like appearance with subtle central fullness and tapered ends.
+       * - Includes fine strokes following the main contour and soft inner feathering.
+       */
+      function drawEyebrow(ctx, eyebrow) {
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        const {
+          headX, headY,
+          cp1X, cp1Y,
+          cp2X, cp2Y,
+          peakX, peakY,
+          cp3X, cp3Y,
+          cp4X, cp4Y,
+          tailX, tailY,
+          thickness = 2.2,
+          strokeDark = '#242428',
+          strokeSoft = '#42424a',
+          strokeFaint = '#6c6c76',
+          isLeft = false
+        } = eyebrow;
+
+        // 1. Primary upper contour curve (inner head -> arch peak -> tapered tail)
+        ctx.strokeStyle = strokeDark;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(headX, headY);
+        ctx.bezierCurveTo(cp1X, cp1Y, cp2X, cp2Y, peakX, peakY);
+        ctx.bezierCurveTo(cp3X, cp3Y, cp4X, cp4Y, tailX, tailY);
+        ctx.stroke();
+
+        // 2. Lower strand contour curve (creates subtle fullness in the central body, tapering at both ends)
+        ctx.strokeStyle = strokeSoft;
+        ctx.lineWidth = 0.95;
+        ctx.beginPath();
+        ctx.moveTo(tailX, tailY);
+        // Return curve from tail to fuller central body
+        const bcp3X = peakX + (tailX - peakX) * 0.45;
+        const bcp3Y = tailY - 6;
+        const bcp2X = peakX + (tailX - peakX) * 0.15;
+        const bcp2Y = peakY + thickness;
+        ctx.bezierCurveTo(bcp3X, bcp3Y, bcp2X, bcp2Y, peakX, peakY + thickness);
+
+        // Return curve from central body to inner head
+        const bcp1X = headX + (peakX - headX) * 0.55;
+        const bcp1Y = peakY + thickness + 1;
+        const bcp0X = headX + (peakX - headX) * 0.2;
+        const bcp0Y = headY - 4;
+        ctx.bezierCurveTo(bcp1X, bcp1Y, bcp0X, bcp0Y, headX, headY);
+        ctx.stroke();
+
+        // 3. Delicate central hair grain stroke (follows natural strand flow)
+        ctx.strokeStyle = strokeFaint;
+        ctx.lineWidth = 0.7;
+        ctx.beginPath();
+        const gStartX = headX + (peakX - headX) * 0.22;
+        const gStartY = headY - 10;
+        const gMidX = peakX + (tailX - peakX) * 0.1;
+        const gMidY = peakY + thickness * 0.45;
+        const gEndX = peakX + (tailX - peakX) * 0.7;
+        const gEndY = tailY - 4;
+        ctx.moveTo(gStartX, gStartY);
+        ctx.quadraticCurveTo(gMidX, gMidY, gEndX, gEndY);
+        ctx.stroke();
+
+        // 4. Subtle inner head hair feathering wisps (delicate natural anime illustration touch)
+        const dir = isLeft ? 1 : -1;
+        ctx.beginPath();
+        ctx.moveTo(headX, headY);
+        ctx.quadraticCurveTo(headX + 3 * dir, headY - 6, headX + 4.5 * dir, headY - 9);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(headX - 4 * dir, headY - 2);
+        ctx.quadraticCurveTo(headX - 1.5 * dir, headY - 8, headX + 0.5 * dir, headY - 11);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // Initialize and render the eye pair and eyebrows directly on page load
+      function render() {
+        const canvas = document.getElementById('canvas');
+        if (!canvas) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        const logicalWidth = 800;
+        const logicalHeight = 800;
+
+        canvas.width = logicalWidth * dpr;
+        canvas.height = logicalHeight * dpr;
+        canvas.style.width = logicalWidth + 'px';
+        canvas.style.height = logicalHeight + 'px';
+
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+
+        // Proportional scale ensuring both eyes fit centered without clipping
+        const s = 0.52;
+
+        // Right eye parameters (facing inward toward the nasal center at X = 400)
+        const rightEye = {
+          cx: 560,
+          cy: 425,
+          scale: s,
+          irisX: 560 + 8 * s,
+          irisY: 425 - 3 * s,
+          irisRx: 88 * s,
+          irisRy: 98 * s,
+          pupilX: 560 + 8 * s,
+          pupilY: 425 - 2 * s,
+          pupilRx: 28 * s,
+          pupilRy: 32 * s,
+          strokeDark: '#222226',
+          strokeMedium: '#3e3e46',
+          strokeSoft: '#5a5a64',
+          strokeFaint: '#7e7e8a'
+        };
+
+        // Complete character configuration with expressive, arched anime-girl eyebrows
+        const character = {
+          midX: 400,
+          rightEye: rightEye,
+          rightEyebrow: {
+            isLeft: false,
+            headX: 466,
+            headY: 356,
+            cp1X: 466 + 102 * 0.45,
+            cp1Y: 356 - 18,
+            cp2X: 466 + 102 * 0.85,
+            cp2Y: 326,
+            peakX: 568,
+            peakY: 326,
+            cp3X: 568 + 100 * 0.4,
+            cp3Y: 326 + 1,
+            cp4X: 568 + 100 * 0.8,
+            cp4Y: 338 - 8,
+            tailX: 668,
+            tailY: 338,
+            thickness: 2.2,
+            strokeDark: '#222226',
+            strokeSoft: '#42424a',
+            strokeFaint: '#6c6c76'
+          },
+          leftEyebrow: {
+            isLeft: true,
+            headX: 334,
+            headY: 356.8,
+            cp1X: 334 - 102 * 0.45,
+            cp1Y: 356.8 - 18.5,
+            cp2X: 334 - 102 * 0.85,
+            cp2Y: 324.5,
+            peakX: 232,
+            peakY: 324.5, // subtle natural asymmetry (1.5px higher lift)
+            cp3X: 232 - 100 * 0.4,
+            cp3Y: 324.5 + 1.2,
+            cp4X: 232 - 100 * 0.8,
+            cp4Y: 338.5 - 7.5,
+            tailX: 132,
+            tailY: 338.5,
+            thickness: 2.2,
+            strokeDark: '#222226',
+            strokeSoft: '#42424a',
+            strokeFaint: '#6c6c76'
+          }
+        };
+
+        // 1. Draw the preserved right eye (clears background & renders right eye)
+        drawAnimeEye(ctx, character.rightEye);
+
+        // 2. Draw the matching left eye (symmetrically mirrored across midline X = 400)
+        drawLeftEye(ctx, character);
+
+        // 3. Draw both eyebrows above the eyes
+        drawEyebrow(ctx, character.rightEyebrow);
+        drawEyebrow(ctx, character.leftEyebrow);
+      }
+
+      if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', render);
+      } else {
+        render();
+      }
+    </script>
+  </body>
+</html>

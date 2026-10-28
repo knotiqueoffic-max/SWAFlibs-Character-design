@@ -1,0 +1,6 @@
+{
+  "name": "Anime Eye Canvas Sketch",
+  "description": "A delicate, procedural anime-style eye sketch drawn using HTML5 Canvas 2D API.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
